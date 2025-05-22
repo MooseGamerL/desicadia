@@ -7,8 +7,8 @@ extends CharacterBody2D
 @export var air_resistance := 600.0
 @export var jump_velocity := -500.0
 @export var double_jump_velocity := -550.0
-@export var wall_jump_velocity := Vector2(300, -500)
-@export var gravity := 1700.0
+@export var wall_jump_velocity := Vector2(280, -525)
+@export var gravity := 1700
 @export var coyote_time := 0.2
 @export var jump_buffer_time := 0.1
 @export var idle2_chance := 0.5
@@ -50,8 +50,10 @@ func _physics_process(delta):
 		can_dash = true
 		dash_cooldown = dash_cooldown2
 	
-	if gravity >= 1701.0:
-		gravity = 1700.0
+	if gravity >= 1700.1:
+		gravity = 1700
+	elif gravity <= 899.9:
+		gravity = 899.9
 	
 	# Handle dash movement
 	if is_dashing:
