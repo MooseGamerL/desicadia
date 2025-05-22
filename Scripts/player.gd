@@ -6,9 +6,9 @@ extends CharacterBody2D
 @export var friction := 1200.0
 @export var air_resistance := 600.0
 @export var jump_velocity := -500.0
-@export var double_jump_velocity := -400.0
+@export var double_jump_velocity := -550.0
 @export var wall_jump_velocity := Vector2(300, -500)
-@export var gravity := 1200.0
+@export var gravity := 1700.0
 @export var coyote_time := 0.2
 @export var jump_buffer_time := 0.1
 @export var idle2_chance := 0.5
@@ -34,6 +34,8 @@ var is_dashing := false
 var dash_direction := Vector2.RIGHT
 var is_wall_sliding := false
 var dash_wall_stick := false  # New state for when we dash into a wall
+var jumped := false
+var vel : Vector2 = Vector2()
 
 @onready var sprite := $AnimatedSprite2D
 
@@ -47,6 +49,9 @@ func _physics_process(delta):
 	if dash_timer <= -dash_cooldown:
 		can_dash = true
 		dash_cooldown = dash_cooldown2
+	
+	if gravity >= 1701.0:
+		gravity = 1700.0
 	
 	# Handle dash movement
 	if is_dashing:
@@ -128,6 +133,16 @@ func _physics_process(delta):
 			has_double_jump = false
 			jump_buffer_timer = 0
 			sprite.play("Jump")
+	
+	#jump release height
+	if Input.is_action_just_pressed("jump") and is_on_floor():
+		jumped = true
+		vel.y -= jump_velocity
+		gravity -= 800
+	if Input.is_action_just_released("jump") and jumped:
+		jumped = false
+		gravity += 900
+		
 	
 	# Dash input (Shift)
 	if Input.is_action_just_pressed("dash") and can_dash and not is_dashing:
