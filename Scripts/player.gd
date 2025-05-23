@@ -38,9 +38,6 @@ var jumped := false
 var vel : Vector2 = Vector2()
 var is_ground_slamming := false
 
-func _on_timer_timeout():
-	print("0.1 seconds have passed!")
-
 @onready var sprite := $AnimatedSprite2D
 
 func _physics_process(delta):
