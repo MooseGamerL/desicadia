@@ -151,22 +151,6 @@ height = 44.0
 
 [node name="CharacterBody2D" type="CharacterBody2D"]
 script = ExtResource("1_e80uo")
-max_speed = null
-acceleration = null
-friction = null
-air_resistance = null
-jump_velocity = null
-double_jump_velocity = null
-wall_jump_velocity = null
-gravity = null
-coyote_time = null
-jump_buffer_time = null
-idle2_chance = null
-dash_speed = null
-dash_duration = null
-dash_cooldown = null
-dash_stop_gravity = null
-wall_slide_gravity = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_tdg3f")

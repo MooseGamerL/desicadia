@@ -36,6 +36,10 @@ var is_wall_sliding := false
 var dash_wall_stick := false  # New state for when we dash into a wall
 var jumped := false
 var vel : Vector2 = Vector2()
+var is_ground_slamming := false
+
+func _on_timer_timeout():
+	print("0.1 seconds have passed!")
 
 @onready var sprite := $AnimatedSprite2D
 
@@ -45,6 +49,11 @@ func _physics_process(delta):
 	jump_buffer_timer -= delta
 	dash_timer -= delta
 	
+	if is_ground_slamming == true:
+		max_speed = 0
+	else:
+		max_speed = 300.0
+
 	# Reset dash when cooldown ends
 	if dash_timer <= -dash_cooldown:
 		can_dash = true
@@ -54,6 +63,7 @@ func _physics_process(delta):
 		gravity = 1700
 	elif gravity <= 899.9:
 		gravity = 899.9
+		
 	
 	# Handle dash movement
 	if is_dashing:
@@ -171,11 +181,13 @@ func _physics_process(delta):
 			
 	if Input.is_action_just_pressed("slam") and is_on_floor() == false:
 		velocity.y -= -1000
-		jump_velocity -= 100
-	if jump_velocity <= -601:
-		jump_velocity == -500
+		is_ground_slamming = true
+		jump_velocity = -600
+			
+	if is_on_floor() == true and is_ground_slamming:
+		is_ground_slamming = false
 	
-	
+		
 	# Animations (when not dashing)
 	if not is_dashing:
 		if is_on_floor():
