@@ -144,7 +144,6 @@ func _physics_process(delta):
 	if Input.is_action_just_released("jump") and jumped:
 		jumped = false
 		gravity += 900
-		
 	
 	# Dash input (Shift)
 	if Input.is_action_just_pressed("dash") and can_dash and not is_dashing:
@@ -169,6 +168,13 @@ func _physics_process(delta):
 		else:
 			var decel = friction if is_on_floor() else air_resistance
 			velocity.x = move_toward(velocity.x, 0, decel * delta)
+			
+	if Input.is_action_just_pressed("slam") and is_on_floor() == false:
+		velocity.y -= -1000
+		jump_velocity -= 100
+	if jump_velocity <= -601:
+		jump_velocity == -500
+	
 	
 	# Animations (when not dashing)
 	if not is_dashing:
