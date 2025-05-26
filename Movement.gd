@@ -53,49 +53,75 @@ var movement_input := 0.0
 @onready var collision_shape := $CollisionShape2D
 @onready var dash_collision_shape := $CollisionShape2D2
 
+func _process(delta):
+	if Input.is_action_just_pressed("jump"):
+		jump_pressed = true
+		jump_buffer_timer = jump_buffer_time
+	if Input.is_action_just_pressed("dash"):
+		print("dash pressed");
+		dash_pressed = true
+	if Input.is_action_just_pressed("slam"):
+		slam_pressed = true
+		
+	# Continuous movement input (updated every frame)
+	movement_input = Input.get_axis("move_left", "move_right")
 
 func handle_idle(delta: float) -> void:
-	var input_x := Input.get_axis("move_left", "move_right")
-	if abs(input_x) > 0.1:
+	if abs(movement_input) > 0.1:
 		change_state(State.WALKING)
-	elif Input.is_action_just_pressed("jump") and (is_on_floor() or coyote_timer > 0):
+	elif jump_pressed and (is_on_floor() or coyote_timer > 0):
+		jump_pressed = false
 		change_state(State.JUMPING)
 	
 func handle_walking(delta: float) -> void:
-	var input_x := Input.get_axis("move_left", "move_right")
-	velocity.x = move_toward(velocity.x, input_x * max_speed, acceleration * delta)
+	 # Get movement direction (left/right/neutral)
+	var target_speed = movement_input * max_speed
 	
+	# Apply acceleration or friction based on input
+	if movement_input != 0:
+		# Accelerate toward target speed
+		velocity.x = move_toward(velocity.x, target_speed, acceleration * delta)
+		
+		# Face the movement direction
+		sprite.flip_h = movement_input < 0
+	else:
+		# Apply friction when no input
+		velocity.x = move_toward(velocity.x, 0, friction * delta)
+	# State transitions
 	if abs(velocity.x) < 1.0:
+		print("Chaning to idle")
 		change_state(State.IDLE)
-	elif Input.is_action_just_pressed("jump"):
+	elif jump_pressed:
+		print("jump pressed in walkings")
+		jump_pressed = false
 		change_state(State.JUMPING)
-	
-	# Sprite direction
-	if input_x != 0:
-		sprite.flip_h = input_x < 0
+	elif dash_pressed:
+		print("dashHandled in walking")
+		dash_pressed = false
+		change_state(State.DASHING)
 
 func handle_jumping(delta: float) -> void:
-	var input_x := Input.get_axis("move_left", "move_right")
-	velocity.x = move_toward(velocity.x, input_x * max_speed, air_resistance * delta)
+	velocity.x = move_toward(velocity.x, movement_input * max_speed, air_resistance * delta)
 	
 	if velocity.y >= 0:
 		change_state(State.FALLING)
-	elif Input.is_action_just_pressed("jump") and has_double_jump:
+	elif jump_pressed and has_double_jump:
+		jump_pressed =false
 		change_state(State.DOUBLE_JUMPING)
 
 func handle_falling(delta: float) -> void:
-	var input_x := Input.get_axis("move_left", "move_right")
-	velocity.x = move_toward(velocity.x, input_x * max_speed, air_resistance * delta)
+	velocity.x = move_toward(velocity.x, movement_input * max_speed, air_resistance * delta)
 	
 	if is_on_floor():
 		change_state(State.IDLE)
-	elif is_on_wall_only() and input_x != 0 and sign(input_x) == sign(get_wall_normal().x):
+	elif is_on_wall_only() and movement_input != 0 and sign(movement_input) == sign(get_wall_normal().x):
 		change_state(State.WALL_SLIDING)
 
 func handle_wall_sliding(delta: float) -> void:
 	velocity.y = min(velocity.y + wall_slide_gravity * delta, wall_slide_gravity)
 	
-	if Input.is_action_just_pressed("jump"):
+	if jump_pressed:
+		jump_pressed = false
 		change_state(State.WALL_JUMPING)
 	elif not is_on_wall_only():
 		change_state(State.FALLING)
@@ -112,7 +138,8 @@ func handle_dashing(delta: float) -> void:
 		change_state(State.STICK)
 
 func handle_stick(delta: float) -> void:
-	if Input.is_action_just_pressed("jump"):
+	if jump_pressed:
+		jump_pressed = false
 		change_state(State.WALL_JUMPING)
 	elif not is_on_wall():
 		change_state(State.FALLING)
@@ -124,14 +151,14 @@ func handle_slamming(delta: float) -> void:
 func reset_dash():
 	can_dash = true
 	dash_timer = 0
-	if current_state not in [State.WALL_SLIDING, State.WALL_JUMPING]:
-		$CollisionShape2D.disabled = false
-		$CollisionShape2D2.disabled = true
+	dash_pressed = false
+	collision_shape.disabled = false
+	dash_collision_shape.disabled = true
 
 #State changing
 func change_state(new_state: State):
 	match current_state:
-		State.DASHING:
+		State.DASHING, State.STICK:
 			if new_state != State.STICK:
 				reset_dash()
 		
@@ -147,8 +174,7 @@ func change_state(new_state: State):
 			
 		State.WALKING:
 			sprite.play("Walk")
-			reset_dash()
-			has_double_jump = true
+
 			
 		State.JUMPING:
 			sprite.play("Jump")
@@ -174,9 +200,8 @@ func change_state(new_state: State):
 			sprite.play("Dash")
 			dash_timer = dash_duration
 			can_dash = false
-			var input_x = Input.get_axis("move_left", "move_right")
 			dash_direction = Vector2(
-				input_x if input_x != 0 else (-1 if sprite.flip_h else 1),
+				movement_input if movement_input != 0 else (-1 if sprite.flip_h else 1),
 				0
 			).normalized()
 			velocity = dash_direction * dash_speed
@@ -190,7 +215,7 @@ func change_state(new_state: State):
 			
 		State.SLAMMING:
 			sprite.play("Slam")
-			velocity = Vector2.ZERO
+			velocity.y = abs(gravity) * 2
 			
 		State.STICK:
 			sprite.play("Dash")
@@ -198,6 +223,13 @@ func change_state(new_state: State):
 			wall_normal = get_wall_normal()
 
 func _physics_process(delta: float) -> void:
+	var want_jump = jump_pressed or jump_buffer_timer > 0
+	var want_dash = dash_pressed and can_dash
+	var want_slam = slam_pressed and not is_on_floor()
+	
+	#dash_pressed = false
+	slam_pressed = false
+	
 	update_timers(delta)
 	
 	match current_state:
@@ -236,15 +268,3 @@ func update_timers(delta: float) -> void:
 func update_state_transitions() -> void:
 	if current_state == State.STICK and not is_on_wall():
 		change_state(State.FALLING)
-		
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("jump") and current_state in [State.IDLE, State.WALKING]:
-		gravity -= -800
-	elif event.is_action_released("jump") and current_state == State.JUMPING:
-		gravity += 800
-	
-	if event.is_action_just_pressed("dash") and can_dash:
-		change_state(State.DASHING)
-	
-	if event.is_action_just_pressed("slam") and not is_on_floor():
-		change_state(State.SLAMMING)
