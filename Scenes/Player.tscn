@@ -1,6 +1,6 @@
 [gd_scene load_steps=23 format=3 uid="uid://dnb412dmyqxwh"]
 
-[ext_resource type="Script" uid="uid://bgp3jug5mmd43" path="res://Scripts/player.gd" id="1_e80uo"]
+[ext_resource type="Script" uid="uid://cykjg2hmx4ca1" path="res://Movement.gd" id="1_5ixxa"]
 [ext_resource type="Texture2D" uid="uid://2ghfqljs5heo" path="res://Assets/pixilart-sprite (3).png" id="1_kne1u"]
 [ext_resource type="Texture2D" uid="uid://c76g821x3vhy" path="res://Assets/pixil-frame-0.png" id="2_5ixxa"]
 [ext_resource type="Texture2D" uid="uid://ukchchq0ax38" path="res://Assets/IDLE.png" id="2_e80uo"]
@@ -150,7 +150,7 @@ radius = 4.0
 height = 44.0
 
 [node name="CharacterBody2D" type="CharacterBody2D"]
-script = ExtResource("1_e80uo")
+script = ExtResource("1_5ixxa")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_tdg3f")
@@ -158,7 +158,7 @@ shape = SubResource("CircleShape2D_tdg3f")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(1.46484, 1.46484)
 sprite_frames = SubResource("SpriteFrames_cgsek")
-animation = &"Dash"
+animation = &"Fall"
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 rotation = 4.71239
