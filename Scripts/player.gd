@@ -17,11 +17,12 @@ extends CharacterBody2D
 @export var dash_speed := 600.0
 @export var dash_duration := 0.2
 @export var dash_cooldown := 0.95
-@export var dash_cooldown2 := dash_cooldown
 @export var dash_stop_gravity := true
-@export var wall_slide_gravity := 300.0  # Reduced gravity when sliding on wall
+@export var wall_slide_gravity := 300.0
+@export var slam_velocity := 1000.0
 
-# State
+var current_Sta
+
 var has_double_jump := true
 var coyote_timer := 0.0
 var jump_buffer_timer := 0.0

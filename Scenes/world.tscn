@@ -127,21 +127,6 @@ sources/0 = SubResource("TileSetAtlasSource_5a7ea")
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("1_a02cp")]
 position = Vector2(477, 315)
-max_speed = 300.0
-acceleration = 1500.0
-friction = 1200.0
-air_resistance = 600.0
-jump_velocity = -500.0
-double_jump_velocity = -550.0
-wall_jump_velocity = Vector2(280, -525)
-gravity = 1700
-coyote_time = 0.2
-jump_buffer_time = 0.1
-dash_duration = 0.2
-dash_speed = 600
-dash_cooldown = 0.95
-dash_stop_gravity = true
-wall_slide_gravity = 300.0
 
 [node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
 position = Vector2(0, -50)

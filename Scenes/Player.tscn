@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://dnb412dmyqxwh"]
+[gd_scene load_steps=24 format=3 uid="uid://dnb412dmyqxwh"]
 
 [ext_resource type="Script" uid="uid://cykjg2hmx4ca1" path="res://Movement.gd" id="1_5ixxa"]
 [ext_resource type="Texture2D" uid="uid://2ghfqljs5heo" path="res://Assets/pixilart-sprite (3).png" id="1_kne1u"]
@@ -52,6 +52,10 @@ region = Rect2(160, 0, 32, 16)
 [sub_resource type="AtlasTexture" id="AtlasTexture_jatw7"]
 atlas = ExtResource("1_kne1u")
 region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_52ee3"]
+atlas = ExtResource("1_kne1u")
+region = Rect2(32, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_efikj"]
 atlas = ExtResource("1_kne1u")
@@ -127,6 +131,14 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_52ee3")
+}],
+"loop": true,
+"name": &"Slam",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_efikj")
 }, {
 "duration": 1.0,
@@ -158,7 +170,7 @@ shape = SubResource("CircleShape2D_tdg3f")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(1.46484, 1.46484)
 sprite_frames = SubResource("SpriteFrames_cgsek")
-animation = &"Fall"
+animation = &"Slam"
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 rotation = 4.71239
