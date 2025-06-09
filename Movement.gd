@@ -56,20 +56,34 @@ var is_ground_slamming := false
 func _physics_process(delta: float) -> void:
 	update_timers(delta)
 	handle_state_transitions()
-	
-	var was_dashing = current_state == State.DASHING
-	handle_movement(delta)
-	move_and_slide()
 	handle_input()
 	
-	if was_dashing and is_on_wall_only():
+	var pre_move_velocity = velocity
+	
+	handle_movement(delta)
+	move_and_slide()
+	if current_state == State.DASHING and is_on_wall_only():
 		var wall_normal = get_wall_normal()
-		if wall_normal.dot(dash_direction) < -0.7:
-			end_dash()
-			change_state(State.WALL_SLIDING)
+		if wall_normal.dot(dash_direction) < -0.8:
+			end_dash_abruptly()
 			return
-	update_animations()
 	apply_gravity(delta)
+	update_animations()
+
+func is_facing_into_wall() -> bool:
+	if not is_on_wall():
+		return false
+	var wall_normal := get_wall_normal()
+	var facing_dir := -1.0 if sprite.flip_h else 1.0
+	return sign(wall_normal.x) == sign(facing_dir) and abs(wall_normal.x) > 0.7
+
+func end_dash_abruptly() -> void:
+	velocity = Vector2.ZERO
+	normal_collision.disabled = false
+	dash_collision.disabled = true
+	dash_timer = 0
+	can_dash = false
+	change_state(State.IDLE if is_on_floor() else State.FALLING)
 
 func update_timers(delta: float) -> void:
 	coyote_timer -= delta
@@ -143,7 +157,8 @@ func handle_input() -> void:
 		handle_jump()
 	
 	if Input.is_action_just_pressed("dash") and can_dash:
-		handle_dash()
+		if can_dash and not is_facing_into_wall():  # Explicit check
+			handle_dash()
 	
 	if Input.is_action_just_pressed("slam") and can_slam():
 		start_ground_slam()
@@ -219,6 +234,9 @@ func handle_dash() -> void:
 	change_state(State.DASHING)
 	normal_collision.disabled = true
 	dash_collision.disabled = false
+	velocity = dash_direction * dash_speed
+	if dash_stop_gravity:
+		velocity.y = 0
 
 func end_dash() -> void:
 	dash_timer = 0

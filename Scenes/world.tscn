@@ -163,7 +163,7 @@ position = Vector2(1024.5, 312.25)
 shape = SubResource("RectangleShape2D_8j60k")
 
 [node name="Hole2" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(1024, 113)
+position = Vector2(1022.75, 113)
 shape = SubResource("RectangleShape2D_fo5ed")
 
 [node name="TileMap" type="Node" parent="."]
