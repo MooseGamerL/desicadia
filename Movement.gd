@@ -12,8 +12,11 @@ extends CharacterBody2D
 @export var coyote_time := 0.2
 @export var jump_buffer_time := 0.1
 @export var idle2_chance := 0.5
+@export var wall_bounce_multiplier := 1.5  
+@export var min_bounce_velocity := 200.0
+@export var max_bounce_velocity := 400.0
+@export var wall_jump_combo_window := 0.15
 
-# Dash Parameters
 @export var dash_speed := 600.0
 @export var dash_duration := 0.2
 @export var dash_cooldown := 0.95
@@ -39,6 +42,9 @@ var previous_state: State = State.IDLE
 
 # Movement State
 var has_double_jump := true
+var wall_jump_combo_timer := 0.0
+var should_slam_jump := false
+var slam_jump_velocity := -650.0
 var coyote_timer := 0.0
 var jump_buffer_timer := 0.0
 var wall_normal := Vector2.ZERO
@@ -62,9 +68,11 @@ func _physics_process(delta: float) -> void:
 	
 	handle_movement(delta)
 	move_and_slide()
-	if current_state == State.DASHING and is_on_wall_only():
+	if current_state == State.DASHING and is_on_wall():
 		var wall_normal = get_wall_normal()
-		if wall_normal.dot(dash_direction) < -0.8:
+		var impact_angle = abs(wall_normal.dot(dash_direction))
+		
+		if impact_angle > 0.7:  # ~45 degree angle or more
 			end_dash_abruptly()
 			return
 	apply_gravity(delta)
@@ -78,17 +86,31 @@ func is_facing_into_wall() -> bool:
 	return sign(wall_normal.x) == sign(facing_dir) and abs(wall_normal.x) > 0.7
 
 func end_dash_abruptly() -> void:
-	velocity = Vector2.ZERO
+	var wall_normal = get_wall_normal()
+	var bounce_power = clamp(abs(wall_normal.dot(dash_direction)) * dash_speed * wall_bounce_multiplier, min_bounce_velocity, max_bounce_velocity)
+	
+	velocity = wall_normal * bounce_power
+	velocity.y *= 0.7  
+	
 	normal_collision.disabled = false
 	dash_collision.disabled = true
 	dash_timer = 0
 	can_dash = false
-	change_state(State.IDLE if is_on_floor() else State.FALLING)
+	
+	wall_jump_combo_timer = wall_jump_combo_window
+	
+	change_state(State.WALL_SLIDING if is_on_wall() and Input.get_axis("move_left", "move_right") != 0 else State.FALLING)
+	
+	if Input.is_action_pressed("jump"):
+		velocity += Vector2(wall_normal.x * 300, -400)
+	
+	has_double_jump = true
 
 func update_timers(delta: float) -> void:
 	coyote_timer -= delta
 	jump_buffer_timer -= delta
 	dash_timer -= delta
+	wall_jump_combo_timer -= delta
 	
 	if not can_dash and dash_timer <= -dash_cooldown:
 		can_dash = true
@@ -146,6 +168,7 @@ func handle_state_transitions() -> void:
 		State.WALL_JUMPING:
 			if velocity.y >= 0:
 				change_state(State.FALLING)
+			wall_jump_combo_timer = 0
 		
 		State.SLAMMING:
 			if is_on_floor():
@@ -198,20 +221,36 @@ func handle_movement(delta: float) -> void:
 		State.SLAMMING:
 			velocity.y = slam_velocity
 			velocity.x = 0
+		
+		State.WALKING, State.FALLING:
+			if previous_state == State.DASHING:
+				velocity.x = move_toward(velocity.x, 0, friction * delta)
 
 func handle_jump() -> void:
 	if current_state == State.WALL_SLIDING:
 		perform_wall_jump()
+	elif should_slam_jump:
+		perform_slam_jump()
 	elif (is_on_floor() or coyote_timer > 0) and current_state != State.DASHING:
 		perform_regular_jump()
 	elif has_double_jump and current_state not in [State.DASHING, State.SLAMMING]:
-		perform_double_jump()
+		if wall_jump_combo_timer > 0 and is_on_wall():
+			perform_wall_jump_combo()
+		else:
+			perform_double_jump()
 
 func perform_regular_jump() -> void:
 	velocity.y = jump_velocity
 	jump_buffer_timer = 0
 	coyote_timer = 0
 	change_state(State.JUMPING)
+
+func perform_wall_jump_combo() -> void:
+	velocity = Vector2(wall_normal.x * wall_jump_velocity.x * 1.2, wall_jump_velocity.y * 0.9) 
+	jump_buffer_timer = 0
+	wall_jump_combo_timer = 0 
+	has_double_jump = false
+	change_state(State.WALL_JUMPING)
 
 func perform_wall_jump() -> void:
 	velocity = Vector2(wall_normal.x * wall_jump_velocity.x, wall_jump_velocity.y)
@@ -225,10 +264,20 @@ func perform_double_jump() -> void:
 	jump_buffer_timer = 0
 	change_state(State.DOUBLE_JUMPING)
 
+func perform_slam_jump() -> void:
+	velocity.y = slam_jump_velocity
+	jump_buffer_timer = 0
+	should_slam_jump = false
+	has_double_jump = true
+	change_state(State.JUMPING)
+
 func handle_dash() -> void:
 	var input_dir = Input.get_axis("move_left", "move_right")
 	var dash_x = input_dir if input_dir != 0 else (-1.0 if sprite.flip_h else 1.0)
 	dash_direction = Vector2(dash_x, 0).normalized()
+	if is_on_wall() and sign(dash_direction.x) == sign(get_wall_normal().x):
+		return
+		
 	dash_timer = dash_duration
 	can_dash = false
 	change_state(State.DASHING)
@@ -242,7 +291,7 @@ func end_dash() -> void:
 	dash_timer = 0
 	normal_collision.disabled = false
 	dash_collision.disabled = true
-	velocity = Vector2.ZERO
+	velocity.x = velocity.x * 0.7
 
 func start_ground_slam() -> void:
 	change_state(State.SLAMMING)
@@ -250,6 +299,7 @@ func start_ground_slam() -> void:
 
 func end_ground_slam() -> void:
 	is_ground_slamming = false
+	should_slam_jump = true  # Set flag for slam jump
 	if abs(velocity.x) > 10:
 		change_state(State.WALKING)
 	else:
