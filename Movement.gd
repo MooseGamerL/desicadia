@@ -16,6 +16,9 @@ extends CharacterBody2D
 @export var min_bounce_velocity := 200.0
 @export var max_bounce_velocity := 400.0
 @export var wall_jump_combo_window := 0.15
+@export var min_slam_velocity := -600.0
+@export var max_slam_velocity := -1200.0
+@export var max_slam_charge_time := 0.8
 
 @export var dash_speed := 600.0
 @export var dash_duration := 0.2
@@ -41,6 +44,8 @@ var current_state: State = State.IDLE
 var previous_state: State = State.IDLE
 
 # Movement State
+var slam_charge_timer := 0.0
+var slam_start_height := 0.0
 var has_double_jump := true
 var wall_jump_combo_timer := 0.0
 var should_slam_jump := false
@@ -54,6 +59,9 @@ var can_dash := true
 var dash_direction := Vector2.RIGHT
 var jumped := false
 var is_ground_slamming := false
+var fall_timer := 0.0
+var fall_start_height := 0.0
+var is_charging_slam := false
 
 @onready var sprite := $AnimatedSprite2D
 @onready var normal_collision := $CollisionShape2D
@@ -64,12 +72,12 @@ func _physics_process(delta: float) -> void:
 	handle_state_transitions()
 	handle_input()
 	
-	var pre_move_velocity = velocity
+	var _pre_move_velocity = velocity
 	
 	handle_movement(delta)
 	move_and_slide()
 	if current_state == State.DASHING and is_on_wall():
-		var wall_normal = get_wall_normal()
+		wall_normal = get_wall_normal()
 		var impact_angle = abs(wall_normal.dot(dash_direction))
 		
 		if impact_angle > 0.7:  # ~45 degree angle or more
@@ -77,16 +85,21 @@ func _physics_process(delta: float) -> void:
 			return
 	apply_gravity(delta)
 	update_animations()
+	
+	if is_charging_slam:
+		slam_charge_timer += delta
+	if is_charging_slam and slam_charge_timer >= max_slam_charge_time:
+		end_ground_slam()
 
 func is_facing_into_wall() -> bool:
 	if not is_on_wall():
 		return false
-	var wall_normal := get_wall_normal()
+	wall_normal = get_wall_normal()
 	var facing_dir := -1.0 if sprite.flip_h else 1.0
 	return sign(wall_normal.x) == sign(facing_dir) and abs(wall_normal.x) > 0.7
 
 func end_dash_abruptly() -> void:
-	var wall_normal = get_wall_normal()
+	wall_normal = get_wall_normal()
 	var bounce_power = clamp(abs(wall_normal.dot(dash_direction)) * dash_speed * wall_bounce_multiplier, min_bounce_velocity, max_bounce_velocity)
 	
 	velocity = wall_normal * bounce_power
@@ -185,6 +198,8 @@ func handle_input() -> void:
 	
 	if Input.is_action_just_pressed("slam") and can_slam():
 		start_ground_slam()
+	elif Input.is_action_just_released("slam") and is_ground_slamming:
+		end_ground_slam()
 	
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		jumped = true
@@ -253,19 +268,29 @@ func perform_wall_jump_combo() -> void:
 	change_state(State.WALL_JUMPING)
 
 func perform_wall_jump() -> void:
+	wall_normal = get_wall_normal()  # Use class variable
 	velocity = Vector2(wall_normal.x * wall_jump_velocity.x, wall_jump_velocity.y)
 	jump_buffer_timer = 0
 	has_double_jump = true
 	change_state(State.WALL_JUMPING)
 
 func perform_double_jump() -> void:
+	wall_normal = get_wall_normal()
 	velocity.y = double_jump_velocity
 	has_double_jump = false
 	jump_buffer_timer = 0
 	change_state(State.DOUBLE_JUMPING)
 
 func perform_slam_jump() -> void:
-	velocity.y = slam_jump_velocity
+	var current_height_diff = slam_start_height - global_position.y
+	
+	if current_height_diff <= 0:
+		velocity.y = slam_jump_velocity
+	else:
+		
+		var required_velocity = calculate_min_jump_velocity(current_height_diff + 50)
+		
+		velocity.y = min(slam_jump_velocity, required_velocity)
 	jump_buffer_timer = 0
 	should_slam_jump = false
 	has_double_jump = true
@@ -294,21 +319,51 @@ func end_dash() -> void:
 	velocity.x = velocity.x * 0.7
 
 func start_ground_slam() -> void:
+	if is_on_floor():
+		is_ground_slamming = false
+		is_charging_slam = false
+		
+		var charge_ratio = min(slam_charge_timer / max_slam_charge_time, 1.0)
+		var base_jump_velocity = lerp(min_slam_velocity, max_slam_velocity, charge_ratio)
+		
+		var height_diff = slam_start_height - global_position.y
+		var min_required_velocity = sqrt(2 * gravity * (height_diff + 50))  # +50px buffer
+		
+		slam_jump_velocity = min(base_jump_velocity, -min_required_velocity)
+		
+		slam_jump_velocity = max(slam_velocity, max_slam_velocity)
+		
+		should_slam_jump = true
+	slam_start_height = global_position.y
 	change_state(State.SLAMMING)
 	is_ground_slamming = true
+	is_charging_slam = true
+	slam_charge_timer = 0.0
+	velocity.y = slam_velocity
+	velocity.x = 0
 
 func end_ground_slam() -> void:
-	is_ground_slamming = false
-	should_slam_jump = true  # Set flag for slam jump
-	if abs(velocity.x) > 10:
-		change_state(State.WALKING)
-	else:
-		change_state(State.IDLE)
+	if is_on_floor():
+		is_ground_slamming = false
+		is_charging_slam = false
+		should_slam_jump = true
+		
+		var charge_ratio = min(slam_charge_timer / max_slam_charge_time, 1.0)
+		slam_jump_velocity = lerp(min_slam_velocity, max_slam_velocity, charge_ratio)
+
+func calculate_min_jump_velocity(desired_height: float) -> float:
+	return -sqrt(2 * gravity * desired_height)
 
 func can_slam() -> bool:
 	return not is_on_floor() and current_state not in [State.DASHING, State.WALL_SLIDING, State.SLAMMING]
 
 func change_state(new_state: State) -> void:
+	if new_state == State.FALLING and current_state != State.FALLING:
+		fall_timer = 0.0
+		fall_start_height = global_position.y
+	if current_state == State.FALLING and new_state != State.FALLING:
+		fall_timer = 0.0
+	
 	previous_state = current_state
 	current_state = new_state
 	

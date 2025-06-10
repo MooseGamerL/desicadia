@@ -1,6 +1,6 @@
 [gd_scene load_steps=10 format=4 uid="uid://et1wmei3wdr2"]
 
-[ext_resource type="PackedScene" uid="uid://dnb412dmyqxwh" path="res://Scenes/Player.tscn" id="1_a02cp"]
+[ext_resource type="PackedScene" uid="uid://cau38xc4dvle0" path="res://Scenes/Player.tscn" id="1_a02cp"]
 [ext_resource type="Texture2D" uid="uid://cx106gvmhl1ff" path="res://Nature Platformer Tileset [16x16][FREE] - RottingPixels/Nature Platformer Tileset [16x16][FREE] - RottingPixels/nature-paltformer-tileset-16x16.png" id="2_go701"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_a02cp"]
