@@ -1,6 +1,6 @@
 [gd_scene load_steps=24 format=3 uid="uid://cau38xc4dvle0"]
 
-[ext_resource type="Script" uid="uid://cykjg2hmx4ca1" path="res://Movement.gd" id="1_5ixxa"]
+[ext_resource type="Script" uid="uid://cykjg2hmx4ca1" path="res://Scripts/Movement.gd" id="1_5ixxa"]
 [ext_resource type="Texture2D" uid="uid://2ghfqljs5heo" path="res://Assets/pixilart-sprite (3).png" id="1_kne1u"]
 [ext_resource type="Texture2D" uid="uid://c76g821x3vhy" path="res://Assets/pixil-frame-0.png" id="2_5ixxa"]
 [ext_resource type="Texture2D" uid="uid://ukchchq0ax38" path="res://Assets/IDLE.png" id="2_e80uo"]

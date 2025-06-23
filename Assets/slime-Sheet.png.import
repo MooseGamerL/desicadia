@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://lug0ththfw8x"
-path="res://.godot/imported/screenshot-1.png-5cab809ffec6e1976c93228eddf228ac.ctex"
+uid="uid://cffogf0ypxtst"
+path="res://.godot/imported/slime-Sheet.png-b5d2fe40e651740c82270aa270b6112f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Nature Platformer Tileset [16x16][FREE] - RottingPixels/Nature Platformer Tileset [16x16][FREE] - RottingPixels/screenshot-1.png"
-dest_files=["res://.godot/imported/screenshot-1.png-5cab809ffec6e1976c93228eddf228ac.ctex"]
+source_file="res://Assets/slime-Sheet.png"
+dest_files=["res://.godot/imported/slime-Sheet.png-b5d2fe40e651740c82270aa270b6112f.ctex"]
 
 [params]
 
