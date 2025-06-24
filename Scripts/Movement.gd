@@ -24,6 +24,7 @@ extends CharacterBody2D
 @export var dash_stop_gravity := true
 @export var wall_slide_gravity := 300.0
 @export var slam_velocity := 1000.0
+@export var slam_jump_window := 0.5
 
 enum State {
 	IDLE,
@@ -59,6 +60,7 @@ var fall_start_height := 0.0
 var is_charging_slam := false
 var current_wall_normal := Vector2.ZERO
 var grace_timer := 0.0
+var slam_jump_window_timer := 0.0
 
 const WALL_GRACE_TIME := 0.15
 
@@ -118,9 +120,14 @@ func update_timers(delta: float) -> void:
 	jump_buffer_timer -= delta
 	dash_timer -= delta
 	wall_jump_combo_timer -= delta
+	
+	if slam_jump_window_timer > 0:
+		slam_jump_window_timer -= delta
+		if slam_jump_window_timer <= 0 and should_slam_jump:
+			should_slam_jump = false
 	if not can_dash and dash_timer <= -dash_cooldown:
 		can_dash = true
-#
+
 func apply_gravity(delta: float) -> void:
 	match current_state:
 		State.DASHING:
@@ -218,7 +225,9 @@ func handle_movement(delta: float) -> void:
 				velocity.x = move_toward(velocity.x, 0, friction * delta)
 
 func handle_jump() -> void:
-	if can_wall_jump():
+	if should_slam_jump and slam_jump_window_timer > 0:
+		perform_slam_jump()
+	elif can_wall_jump():
 		for i in get_slide_collision_count():
 			var collision = get_slide_collision(i)
 			var platform = collision.get_collider()
@@ -267,17 +276,16 @@ func perform_double_jump() -> void:
 	change_state(State.DOUBLE_JUMPING)
 
 func perform_slam_jump() -> void:
-	var current_height_diff = slam_start_height - global_position.y
-	if current_height_diff <= 0:
+	if should_slam_jump and slam_jump_window_timer > 0:
 		velocity.y = slam_jump_velocity
+		jump_buffer_timer = 0
+		should_slam_jump = false
+		slam_jump_window_timer = 0
+		has_double_jump = true
+		change_state(State.JUMPING)
 	else:
-		
-		var required_velocity = calculate_min_jump_velocity(current_height_diff + 50)
-		velocity.y = min(slam_jump_velocity, required_velocity)
-	jump_buffer_timer = 0
-	should_slam_jump = false
-	has_double_jump = true
-	change_state(State.JUMPING)
+		if is_on_floor() and jump_buffer_timer > 0:
+			perform_regular_jump()
 
 func handle_dash() -> void:
 	var input_dir = Input.get_axis("move_left", "move_right")
@@ -324,6 +332,9 @@ func end_ground_slam() -> void:
 		is_ground_slamming = false
 		is_charging_slam = false
 		should_slam_jump = true
+		slam_jump_window_timer = slam_jump_window
+		change_state(State.IDLE)
+
 		var charge_ratio = min(slam_charge_timer / max_slam_charge_time, 1.0)
 		slam_jump_velocity = lerp(min_slam_velocity, max_slam_velocity, charge_ratio)
 
