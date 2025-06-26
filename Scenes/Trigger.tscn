@@ -1,13 +1,13 @@
 [gd_scene load_steps=3 format=3 uid="uid://b0jtr224cfcf6"]
 
-[ext_resource type="Script" uid="uid://c3m8587em6bjj" path="res://Scripts/Trigger.gd" id="1_ft1xu"]
+[ext_resource type="Script" uid="uid://dm03icmt0b7m2" path="res://Scripts/Enemywall.gd" id="1_ft1xu"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_v78su"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mt2vh"]
 
 [node name="Trigger" type="Node2D"]
 
-[node name="Area2D" type="Area2D" parent="."]
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
 script = ExtResource("1_ft1xu")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-shape = SubResource("RectangleShape2D_v78su")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_mt2vh")
