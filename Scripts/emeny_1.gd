@@ -30,3 +30,9 @@ func _change_direction() -> void:
 	move_direction *= -1
 	if has_node("Sprite2D"):
 		$Sprite2D.flip_h = not $Sprite2D.flip_h
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
+		if collider.is_in_group("player"):
+			if collider.has_method("take_damage"):
+				collider.take_damage(1)

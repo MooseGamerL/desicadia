@@ -4,10 +4,10 @@ extends CharacterBody2D
 @export var acceleration := 1500.0
 @export var friction := 1200.0
 @export var air_resistance := 600.0
-@export var jump_velocity := -500.0
+@export var jump_velocity := -600.0
 @export var double_jump_velocity := -550.0
 @export var wall_jump_velocity := Vector2(280, -525)
-@export var gravity := 1700.0
+@export var gravity := 1600.0
 @export var coyote_time := 0.2
 @export var jump_buffer_time := 0.1
 @export var idle2_chance := 0.5
@@ -25,6 +25,8 @@ extends CharacterBody2D
 @export var wall_slide_gravity := 300.0
 @export var slam_velocity := 1000.0
 @export var slam_jump_window := 0.5
+@export var health := 3
+@export var respawn_position: Vector2
 
 enum State {
 	IDLE,
@@ -382,6 +384,17 @@ func change_state(new_state: State) -> void:
 			sprite.play("Jump")
 		State.SLAMMING:
 			sprite.play("Slam")
+
+func take_damage(amount: int) -> void:
+	health -= amount
+	modulate = Color.RED
+	await get_tree().create_timer(0.1).timeout
+	modulate = Color.WHITE
+	if health <= 0:
+		die()
+
+func die() -> void:
+	get_tree().reload_current_scene()
 
 func update_animations() -> void:
 	if current_state == State.IDLE and abs(velocity.x) < 10:
