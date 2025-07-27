@@ -168,5 +168,12 @@ offset_top = 24.0
 offset_right = 24.0
 offset_bottom = 24.0
 
+[node name="Label" type="Label" parent="UI"]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 165.0
+offset_bottom = 51.0
+text = "           |        |"
+
 [node name="Emeny2" parent="." instance=ExtResource("3_5a7ea")]
 position = Vector2(725, 328)
