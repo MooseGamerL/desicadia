@@ -74,11 +74,13 @@ const WALL_GRACE_TIME := 0.15
 @onready var health_bar: ProgressBar
 
 func _ready() -> void:
+	add_to_group("player")
+	collision_layer = 1
+	collision_mask = 1 | 2
 	current_health = max_health
 	update_health_bar()
 
 func take_damage(ammount: float) -> void:
-	print("takedamgaa")
 	current_health = max(current_health - ammount, 0.0)
 	update_health_bar()
 	if current_health <= 0:

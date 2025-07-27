@@ -167,10 +167,12 @@ script = ExtResource("1_5ixxa")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_tdg3f")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." groups=["player"]]
 scale = Vector2(1.46484, 1.46484)
 sprite_frames = SubResource("SpriteFrames_cgsek")
-animation = &"Slam"
+animation = &"Idle2"
+frame = 3
+frame_progress = 0.89366
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 rotation = 4.71239

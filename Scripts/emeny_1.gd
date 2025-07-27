@@ -18,6 +18,9 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += gravity * delta
 		velocity.y = min(velocity.y, max_fall_speed)
+	else:
+		velocity.y = 0
+		
 	velocity.x = move_direction.x * speed
 	move_and_slide()
 	if is_on_wall():
@@ -36,8 +39,12 @@ func check_player_collision() -> void:
 		var collision = get_slide_collision(i)
 		var collider = collision.get_collider()
 		if collider and collider.has_method("take_damage"):
+			var collision_normal = collision.get_normal()
+			# Check if player is above enemy
+			if collision_normal.y > 0.5:
+				# Player is above enemy, don't damage
+				return
 			collider.take_damage(damage)
-			print("Enemy hit player!")
 			damage_timer = damage_cooldown
 			break
 
