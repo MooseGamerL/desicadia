@@ -20,14 +20,14 @@ func _physics_process(delta: float) -> void:
 		velocity.y = min(velocity.y, max_fall_speed)
 	velocity.x = move_direction.x * speed
 	move_and_slide()
-	_change_direction()
-	turn_timer = turn_delay
+	if is_on_wall():
+		change_direction()
 	check_player_collision()
 
 func _ready():
 	add_to_group("enemy")
 	collision_layer = 2
-	collision_mask = 3
+	collision_mask = 1
 
 func check_player_collision() -> void:
 	if damage_timer > 0:
@@ -41,10 +41,10 @@ func check_player_collision() -> void:
 			damage_timer = damage_cooldown
 			break
 
-func _change_direction() -> void:
+func change_direction() -> void:
 	if turn_timer > 0:
 		return
 	move_direction *= -1
 	turn_timer = turn_delay
-	if has_node("Sprite2D"):
-		Sprite2D.flip_h = not $Sprite2D.flip_h
+	if has_node("AnimatedSprite2D"):
+		$AnimatedSprite2D.flip_h = not $AnimatedSprite2D.flip_h

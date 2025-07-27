@@ -155,7 +155,7 @@ tile_map_data = PackedByteArray("AAAEABcAAAABAAAAAAAFABcAAAABAAAAAAAGABcAAAABAAA
 tile_set = SubResource("TileSet_8j60k")
 
 [node name="Emeny1" parent="." instance=ExtResource("3_5a7ea")]
-position = Vector2(212, 318)
+position = Vector2(152, 289)
 
 [node name="Trigger" parent="." instance=ExtResource("4_8j60k")]
 position = Vector2(-1049, 359)
@@ -163,7 +163,7 @@ position = Vector2(-1049, 359)
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="HealthBar" parent="UI" instance=ExtResource("2_5ukr8")]
-offset_left = 99.0
-offset_top = 12.0
-offset_right = 99.0
-offset_bottom = 12.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 24.0
+offset_bottom = 24.0
