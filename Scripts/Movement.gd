@@ -26,6 +26,9 @@ extends CharacterBody2D
 @export var slam_velocity := 1000.0
 @export var slam_jump_window := 0.5
 
+@export var respawn_position: Vector2
+@export var max_health := 12
+
 enum State {
 	IDLE,
 	WALKING,
@@ -61,12 +64,47 @@ var is_charging_slam := false
 var current_wall_normal := Vector2.ZERO
 var grace_timer := 0.0
 var slam_jump_window_timer := 0.0
+var current_health: float
 
 const WALL_GRACE_TIME := 0.15
 
 @onready var sprite := $AnimatedSprite2D
 @onready var normal_collision := $CollisionShape2D
 @onready var dash_collision := $CollisionShape2D2
+@onready var health_bar: ProgressBar
+
+func _ready() -> void:
+	current_health = max_health
+	update_health_bar()
+
+func take_damage(ammount: float) -> void:
+	print("takedamgaa")
+	current_health = max(current_health - ammount, 0.0)
+	update_health_bar()
+	if current_health <= 0:
+		die()
+
+func heal(ammount: float) -> void:
+	current_health = min(current_health + ammount, max_health)
+	update_health_bar()
+
+func update_health_bar() -> void:
+	if health_bar:
+		health_bar.max_value = max_health
+		health_bar.value = current_health
+		health_bar.queue_redraw()
+
+func die() -> void:
+	global_position = Vector2(450, 225)
+	current_health = max_health
+	update_health_bar()
+
+func get_health_percentage() -> float:
+	return current_health / max_health
+
+func set_health_bar(bar: ProgressBar) -> void:
+	health_bar = bar
+	update_health_bar()
 
 func _physics_process(delta: float) -> void:
 	grace_timer = max(grace_timer - delta, 0.0)
