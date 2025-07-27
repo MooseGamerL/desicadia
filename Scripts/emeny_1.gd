@@ -8,16 +8,23 @@ extends CharacterBody2D
 @export var max_fall_speed: float = 400.0
 @export var damage: float = 4
 @export var damage_cooldown: float = 1.0
+@export var respawn_time: float = 5.0
 
 var damage_timer := 0.0
 var turn_timer := 0.0
 var is_dead := false
 var death_invulnerability_timer := 0.0
 var killed_by_slam := false
+var respawn_timer := 0.0
+var initial_position: Vector2
+var initial_direction: Vector2
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		death_invulnerability_timer = max(death_invulnerability_timer - delta, 0.0)
+		respawn_timer = max(respawn_timer - delta, 0.0)
+		if respawn_timer <= 0:
+			respawn()
 		return
 	turn_timer = max(turn_timer - delta, 0.0)
 	damage_timer = max(damage_timer - delta, 0.0)
@@ -37,6 +44,8 @@ func _ready():
 	add_to_group("enemy")
 	collision_layer = 2
 	collision_mask = 1
+	initial_position = position
+	initial_direction = move_direction
 
 func check_player_collision() -> void:
 	if damage_timer > 0 or is_dead or death_invulnerability_timer > 0:
@@ -57,9 +66,11 @@ func check_player_collision() -> void:
 func die() -> void:
 	is_dead = true
 	death_invulnerability_timer = 0.1
+	respawn_timer = respawn_time
 	collision_layer = 0
 	collision_mask = 0
-	queue_free()
+	if has_node("AnimatedSprite2D"):
+		$AnimatedSprite2D.visible = false
 
 func change_direction() -> void:
 	if turn_timer > 0 or is_dead:
@@ -68,3 +79,16 @@ func change_direction() -> void:
 	turn_timer = turn_delay
 	if has_node("AnimatedSprite2D"):
 		$AnimatedSprite2D.flip_h = not $AnimatedSprite2D.flip_h
+
+func respawn() -> void:
+	is_dead = false
+	death_invulnerability_timer = 0.0
+	respawn_timer = 0.0
+	position = initial_position
+	move_direction = initial_direction
+	velocity = Vector2.ZERO
+	collision_layer = 2
+	collision_mask = 1
+	if has_node("AnimatedSprite2D"):
+		$AnimatedSprite2D.visible = true
+		$AnimatedSprite2D.flip_h = false
