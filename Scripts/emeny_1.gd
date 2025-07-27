@@ -11,8 +11,14 @@ extends CharacterBody2D
 
 var damage_timer := 0.0
 var turn_timer := 0.0
+var is_dead := false
+var death_invulnerability_timer := 0.0
+var killed_by_slam := false
 
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		death_invulnerability_timer = max(death_invulnerability_timer - delta, 0.0)
+		return
 	turn_timer = max(turn_timer - delta, 0.0)
 	damage_timer = max(damage_timer - delta, 0.0)
 	if not is_on_floor():
@@ -33,7 +39,7 @@ func _ready():
 	collision_mask = 1
 
 func check_player_collision() -> void:
-	if damage_timer > 0:
+	if damage_timer > 0 or is_dead or death_invulnerability_timer > 0:
 		return
 	for i in get_slide_collision_count():
 		var collision = get_slide_collision(i)
@@ -48,8 +54,15 @@ func check_player_collision() -> void:
 			damage_timer = damage_cooldown
 			break
 
+func die() -> void:
+	is_dead = true
+	death_invulnerability_timer = 0.1
+	collision_layer = 0
+	collision_mask = 0
+	queue_free()
+
 func change_direction() -> void:
-	if turn_timer > 0:
+	if turn_timer > 0 or is_dead:
 		return
 	move_direction *= -1
 	turn_timer = turn_delay

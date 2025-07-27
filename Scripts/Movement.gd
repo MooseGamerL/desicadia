@@ -65,8 +65,10 @@ var current_wall_normal := Vector2.ZERO
 var grace_timer := 0.0
 var slam_jump_window_timer := 0.0
 var current_health: float
+var slam_completion_timer := 0.0
 
 const WALL_GRACE_TIME := 0.15
+const SLAM_COMPLETION_WINDOW := 0.3
 
 @onready var sprite := $AnimatedSprite2D
 @onready var normal_collision := $CollisionShape2D
@@ -120,6 +122,7 @@ func _physics_process(delta: float) -> void:
 	var _pre_move_velocity = velocity
 	handle_movement(delta)
 	move_and_slide()
+	check_enemy_collisions()
 	if current_state == State.DASHING and is_on_wall():
 		wall_normal = get_wall_normal()
 		var impact_angle = abs(wall_normal.dot(dash_direction))
@@ -160,6 +163,7 @@ func update_timers(delta: float) -> void:
 	jump_buffer_timer -= delta
 	dash_timer -= delta
 	wall_jump_combo_timer -= delta
+	slam_completion_timer = max(slam_completion_timer - delta, 0.0)
 	
 	if slam_jump_window_timer > 0:
 		slam_jump_window_timer -= delta
@@ -371,6 +375,7 @@ func end_ground_slam() -> void:
 	if is_on_floor():
 		is_ground_slamming = false
 		is_charging_slam = false
+		slam_completion_timer = SLAM_COMPLETION_WINDOW
 		should_slam_jump = true
 		slam_jump_window_timer = slam_jump_window
 		change_state(State.IDLE)
@@ -428,3 +433,25 @@ func update_animations() -> void:
 		if sprite.animation not in ["Idle", "Idle2"]:
 			current_idle_anim = "Idle2" if randf() < idle2_chance else "Idle"
 		sprite.play(current_idle_anim)
+
+func was_recently_slamming() -> bool:
+	return slam_completion_timer > 0.0
+
+func is_player_attacking() -> bool:
+	if current_state == State.DASHING:
+		return true
+	if current_state == State.SLAMMING:
+		return true
+	if was_recently_slamming():
+		return true
+	return false
+
+func check_enemy_collisions():
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
+		if collider and collider.is_in_group("enemy"):
+			if is_player_attacking():
+				if collider.has_method("die"):
+					collider.die()
+				return
