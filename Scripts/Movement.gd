@@ -28,8 +28,6 @@ var has_double_jump := true
 @export var wall_jump_combo_window := 0.15
 @export var wall_slide_gravity := 300.0
 @export var wall_jump_velocity := Vector2(280, -525)
-@export var disable_wall_slide_time := 0.2
-var disable_wall_slide_timer := 0.0
 var wall_jump_combo_timer := 0.0
 var current_wall_normal := Vector2.ZERO
 var grace_timer := 0.0
@@ -131,7 +129,6 @@ func set_health_bar(bar: ProgressBar) -> void:
 
 #Updates every physics frame to start a timer.
 func _physics_process(delta: float) -> void:
-	disable_wall_slide_timer = max(disable_wall_slide_timer - delta, 0.0)
 	# Reset wall_normal if not on a wall
 	if not is_on_wall() and grace_timer <= 0:
 		wall_normal = Vector2.ZERO
@@ -176,10 +173,9 @@ func end_dash_abruptly() -> void:
 	var bounce_power = clamp(abs(wall_normal.dot(dash_direction)) * dash_speed * wall_bounce_multiplier, min_bounce_velocity, max_bounce_velocity)
 	velocity = wall_normal * bounce_power
 	velocity.y *= 0.7  # Slightly reduce vertical bounce
-	# RESET ALL WALL STATES
-	grace_timer = 0.0
+	# Keep wall detection active for immidate wall jumping
+	grace_timer = WALL_GRACE_TIME
 	wall_jump_combo_timer = 0.0
-	disable_wall_slide_timer = disable_wall_slide_time  # Block wall slides after dash
 	# Reset collisions
 	normal_collision.disabled = false
 	dash_collision.disabled = true
@@ -241,7 +237,7 @@ func handle_state_transitions() -> void:
 		State.FALLING:
 			if is_on_floor():
 				change_state(State.IDLE)
-			elif is_on_wall() and Input.get_axis("move_left", "move_right") != 0 and disable_wall_slide_timer <= 0:
+			elif is_on_wall() and Input.get_axis("move_left", "move_right") != 0:
 				change_state(State.WALL_SLIDING)  # Only slide if allowed
 		State.WALL_SLIDING:
 			if not is_on_wall():
@@ -334,12 +330,6 @@ func handle_jump() -> void:
 #This function initiates a standard jump by setting upward velocity, resetting jump-related timers, and switching the state to JUMPING.
 func perform_regular_jump() -> void:
 	velocity.y = jump_velocity
-	# Reset horizontal velocity unless holding movement
-	var input_dir = Input.get_axis("move_left", "move_right")
-	velocity.x = input_dir * max_speed if input_dir != 0 else 0
-	# Completely reset all wall interaction states
-	wall_normal = Vector2.ZERO
-	grace_timer = 0.0
 	wall_jump_combo_timer = 0.0
 	jump_buffer_timer = 0
 	coyote_timer = 0
@@ -352,7 +342,6 @@ func perform_wall_jump_combo() -> void:
 	wall_jump_combo_timer = 0 
 	has_double_jump = false
 	change_state(State.WALL_JUMPING)
-
 #This function allows the player to jump off a wall, resets the jump buffer timer, enables double jump, and sets the state to jumping
 func perform_wall_jump() -> void:
 	if not is_on_wall() and grace_timer <= 0:
@@ -369,12 +358,6 @@ func perform_double_jump() -> void:
 	if is_on_wall() or wall_jump_combo_timer > 0:
 		return
 	velocity.y = double_jump_velocity
-	# Apply normal movement input, not wall-jump force
-	var input_dir = Input.get_axis("move_left", "move_right")
-	velocity.x = input_dir * max_speed if input_dir != 0 else 0
-	# Reset all wall states
-	wall_normal = Vector2.ZERO
-	grace_timer = 0.0
 	wall_jump_combo_timer = 0.0
 	has_double_jump = false
 	jump_buffer_timer = 0
@@ -461,16 +444,17 @@ func can_slam() -> bool:
 func can_wall_jump() -> bool:
 	if current_state == State.DASHING:
 		return false
-	# Only disable if actually touching a wall
-	if disable_wall_slide_timer > 0 and is_on_wall():
-		return false
 	var input_dir = Input.get_axis("move_left", "move_right")
 	var pushing_into_wall = (input_dir < 0 and wall_normal.x > 0) or (input_dir > 0 and wall_normal.x < 0)
 	return (is_on_wall() or grace_timer > 0) and pushing_into_wall
 
 #This function updates your current and previous state, resets fall timers as needed, adjusts double jump and coyote timers, and plays the corresponding animation for the new state.
 func change_state(new_state: State) -> void:
-	if current_state in [State.WALL_SLIDING, State.WALL_JUMPING]:
+	# Don't clear wall normal when transitioning from DASHING to FALLING (For wall jump after dash)
+	if current_state == State.DASHING and new_state == State.FALLING:
+		#Keep wall normal and grace timer for immediate wall jumping
+		pass
+	elif current_state in [State.WALL_SLIDING, State.WALL_JUMPING]:
 		if new_state not in [State.WALL_SLIDING, State.WALL_JUMPING]:
 			wall_normal = Vector2.ZERO
 			wall_jump_combo_timer = 0.0
