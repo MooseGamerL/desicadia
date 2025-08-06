@@ -129,7 +129,7 @@ sources/0 = SubResource("TileSetAtlasSource_5a7ea")
 script = ExtResource("1_fo5ed")
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("1_a02cp")]
-position = Vector2(459, 373)
+position = Vector2(463, 371)
 
 [node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
 position = Vector2(0, -50)
@@ -177,3 +177,14 @@ text = "           |        |"
 
 [node name="Emeny2" parent="." instance=ExtResource("3_5a7ea")]
 position = Vector2(725, 328)
+
+[node name="Label" type="Label" parent="."]
+offset_left = 39.0
+offset_top = 102.0
+offset_right = 281.0
+offset_bottom = 229.0
+text = "A and D - Move left/right
+Space - Jump
+Shift - Dash
+Ctrl while in air - Slam
+Space while on wall - Wall jump"

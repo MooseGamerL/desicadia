@@ -1,24 +1,29 @@
+#Enemy code.
 extends CharacterBody2D
 
+#Movement variables.
 @export var speed: float = 100.0
 @export var move_direction: Vector2 = Vector2.RIGHT
 @export var turn_delay: float = 0.3
-
 @export var gravity: float = 980.0
 @export var max_fall_speed: float = 400.0
-@export var damage: float = 4
-@export var damage_cooldown: float = 1.0
-@export var respawn_time: float = 5.0
-
-var damage_timer := 0.0
 var turn_timer := 0.0
+
+#Damage variables.
+@export var damage: float = 1
+@export var damage_cooldown: float = 1.0
+var damage_timer := 0.0
+
+#Death and respawn variables.
+@export var respawn_time: float = 5.0
 var is_dead := false
-var death_invulnerability_timer := 0.0
-var killed_by_slam := false
 var respawn_timer := 0.0
 var initial_position: Vector2
 var initial_direction: Vector2
+var death_invulnerability_timer := 0.0
+var killed_by_slam := false
 
+#This function updates timers, applies gravity if airborne, moves horizontally, reverses direction on wall contact, and handles death and player collisions.
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		death_invulnerability_timer = max(death_invulnerability_timer - delta, 0.0)
@@ -40,6 +45,7 @@ func _physics_process(delta: float) -> void:
 		change_direction()
 	check_player_collision()
 
+#This function sets the enemy’s group, collision layers, and stores its starting position and movement direction.
 func _ready():
 	add_to_group("enemy")
 	collision_layer = 2
@@ -47,6 +53,7 @@ func _ready():
 	initial_position = position
 	initial_direction = move_direction
 
+#This function damages the player on contact unless the player is above the enemy or the enemy is invulnerable, then starts a damage cooldown.
 func check_player_collision() -> void:
 	if damage_timer > 0 or is_dead or death_invulnerability_timer > 0:
 		return
@@ -63,6 +70,7 @@ func check_player_collision() -> void:
 			damage_timer = damage_cooldown
 			break
 
+#This function hides the enemy and makes it not have collision after it has been killed, and starts the respawn timer.
 func die() -> void:
 	is_dead = true
 	death_invulnerability_timer = 0.1
@@ -72,6 +80,7 @@ func die() -> void:
 	if has_node("AnimatedSprite2D"):
 		$AnimatedSprite2D.visible = false
 
+#This function flips the enemy’s movement direction and sprite horizontally, with a turn delay and only if the enemy isn’t dead.
 func change_direction() -> void:
 	if turn_timer > 0 or is_dead:
 		return
@@ -80,6 +89,7 @@ func change_direction() -> void:
 	if has_node("AnimatedSprite2D"):
 		$AnimatedSprite2D.flip_h = not $AnimatedSprite2D.flip_h
 
+#This function makes the enemy visible again and gives it collision.
 func respawn() -> void:
 	is_dead = false
 	death_invulnerability_timer = 0.0
