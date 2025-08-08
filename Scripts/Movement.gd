@@ -66,10 +66,10 @@ var dash_direction := Vector2.RIGHT
 var current_health: float
 
 #Unlockable variables.
-var wall_jump_unlocked = true
-var dash_unlocked = true
-var double_jump_unlocked = true
-var slam_unlocked = true
+var wall_jump_unlocked = false
+var dash_unlocked = false
+var double_jump_unlocked = false
+var slam_unlocked = false
 
 #Every state.
 enum State {
@@ -459,7 +459,9 @@ func can_slam() -> bool:
 
 #This function checks if the player meets the conditions to wall jump.
 func can_wall_jump() -> bool:
-	if not wall_jump_unlocked or current_state == State.DASHING:
+	if not wall_jump_unlocked:
+		return false
+	if current_state == State.DASHING:
 		return false
 	var input_dir = Input.get_axis("move_left", "move_right")
 	var pushing_into_wall = (input_dir < 0 and wall_normal.x > 0) or (input_dir > 0 and wall_normal.x < 0)
@@ -529,3 +531,22 @@ func check_enemy_collisions():
 				if collider.has_method("die"):
 					collider.die()
 				return
+
+func on_ability_picked_up(ability_type) -> void:
+	print("Pickup collected: ", ability_type)
+	match ability_type:
+		"wall_jump":
+			wall_jump_unlocked = true
+			print("wall jump unlocked")
+		"dash":
+			dash_unlocked = true
+			print("dash unlocked")
+		"double_jump":
+			double_jump_unlocked = true
+			print("double jump unlocked")
+		"slam":
+			slam_unlocked = true
+			print("slam unlocked")
+		_:
+			print("X Unknown ability type: ", ability_type)
+		

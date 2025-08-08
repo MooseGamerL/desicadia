@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://cx106gvmhl1ff" path="res://Assets/Nature Platformer Tileset [16x16][FREE] - RottingPixels/Nature Platformer Tileset [16x16][FREE] - RottingPixels/nature-paltformer-tileset-16x16.png" id="2_go701"]
 [ext_resource type="PackedScene" uid="uid://b8qlapv3lomd4" path="res://Scenes/Emeny1.tscn" id="3_5a7ea"]
 [ext_resource type="PackedScene" uid="uid://b0jtr224cfcf6" path="res://Scenes/Trigger.tscn" id="4_8j60k"]
-[ext_resource type="PackedScene" uid="uid://8g2287xtb1rf" path="res://Scenes/Pickup.tscn" id="7_o06y3"]
+[ext_resource type="Script" uid="uid://is6k2u6rg6bm" path="res://Scripts/pickup_wrapper.gd" id="7_o06y3"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5a7ea"]
 texture = ExtResource("2_go701")
@@ -210,14 +210,21 @@ offset_right = 733.88
 offset_bottom = -19.1198
 text = "Shift - Dash (can kill enemies with this)"
 
-[node name="Pickup" parent="." instance=ExtResource("7_o06y3")]
-position = Vector2(1613, 436)
+[node name="Pickup-Slam" type="Node2D" parent="."]
+position = Vector2(-1435, -80)
+script = ExtResource("7_o06y3")
+ability_type = "slam"
 
-[node name="Pickup2" parent="." instance=ExtResource("7_o06y3")]
-position = Vector2(872, -382)
+[node name="Pickup-Wall Jump" type="Node2D" parent="."]
+position = Vector2(1565, 438)
+script = ExtResource("7_o06y3")
 
-[node name="Pickup3" parent="." instance=ExtResource("7_o06y3")]
-position = Vector2(-168, -61)
+[node name="Pickup-Dash" type="Node2D" parent="."]
+position = Vector2(856, -379)
+script = ExtResource("7_o06y3")
+ability_type = "dash"
 
-[node name="Pickup4" parent="." instance=ExtResource("7_o06y3")]
-position = Vector2(-1434, -78)
+[node name="Pickup-Double Jump" type="Node2D" parent="."]
+position = Vector2(-166, -87)
+script = ExtResource("7_o06y3")
+ability_type = "double_jump"
