@@ -65,6 +65,12 @@ var dash_direction := Vector2.RIGHT
 @export var max_health := 3
 var current_health: float
 
+#Unlockable variables.
+var wall_jump_unlocked = true
+var dash_unlocked = true
+var double_jump_unlocked = true
+var slam_unlocked = true
+
 #Every state.
 enum State {
 	IDLE,
@@ -342,6 +348,7 @@ func perform_wall_jump_combo() -> void:
 	wall_jump_combo_timer = 0 
 	has_double_jump = false
 	change_state(State.WALL_JUMPING)
+	
 #This function allows the player to jump off a wall, resets the jump buffer timer, enables double jump, and sets the state to jumping
 func perform_wall_jump() -> void:
 	if not is_on_wall() and grace_timer <= 0:
@@ -355,6 +362,9 @@ func perform_wall_jump() -> void:
 
 #This function allows the player to jump once while midair, and changes the state to double jumping.
 func perform_double_jump() -> void:
+	if double_jump_unlocked == false:
+		has_double_jump = false
+		return
 	if is_on_wall() or wall_jump_combo_timer > 0:
 		return
 	velocity.y = double_jump_velocity
@@ -362,6 +372,7 @@ func perform_double_jump() -> void:
 	has_double_jump = false
 	jump_buffer_timer = 0
 	change_state(State.DOUBLE_JUMPING)
+
 
 #This function executes a powerful upward jump after a slam if conditions are met, resetting flags and timers, enabling double jump, and switching to JUMPING. Otherwise, it defaults to a regular jump if grounded and buffered.
 func perform_slam_jump() -> void:
@@ -378,6 +389,9 @@ func perform_slam_jump() -> void:
 
 #This function enables the dash, cancels it if dashing into a wall and switches to the dashing state.
 func handle_dash() -> void:
+	if dash_unlocked == false:
+		can_dash = false
+		return
 	var input_dir = Input.get_axis("move_left", "move_right")
 	var dash_x = input_dir if input_dir != 0 else (-1.0 if sprite.flip_h else 1.0)
 	dash_direction = Vector2(dash_x, 0).normalized()
@@ -391,6 +405,7 @@ func handle_dash() -> void:
 	velocity = dash_direction * dash_speed
 	if dash_stop_gravity:
 		velocity.y = 0
+
 
 #This function ends the dash, while keeping momentum.
 func end_dash() -> void:
@@ -438,11 +453,13 @@ func calculate_min_jump_velocity(desired_height: float) -> float:
 
 #This function checks if the player meets the conditions to slam.
 func can_slam() -> bool:
+	if not slam_unlocked:
+		return false
 	return not is_on_floor() and current_state not in [State.DASHING, State.WALL_SLIDING, State.SLAMMING]
 
 #This function checks if the player meets the conditions to wall jump.
 func can_wall_jump() -> bool:
-	if current_state == State.DASHING:
+	if not wall_jump_unlocked or current_state == State.DASHING:
 		return false
 	var input_dir = Input.get_axis("move_left", "move_right")
 	var pushing_into_wall = (input_dir < 0 and wall_normal.x > 0) or (input_dir > 0 and wall_normal.x < 0)
