@@ -156,59 +156,59 @@ offset_right = 165.0
 offset_bottom = 51.0
 text = "           |        |"
 
-[node name="Label" type="Label" parent="."]
-offset_left = 438.0
-offset_top = 213.0
-offset_right = 680.0
-offset_bottom = 340.0
+[node name="Labels" type="Node2D" parent="."]
+position = Vector2(-220, -323)
+scale = Vector2(2.15848, 3.51379)
+
+[node name="Label" type="Label" parent="Labels"]
+offset_left = 277.046
+offset_top = 124.936
+offset_right = 519.046
+offset_bottom = 251.936
+scale = Vector2(0.616829, 0.676596)
 text = "A and D - Move left/right
 Space - Jump
 "
 
-[node name="Label" type="Label" parent="Label"]
-layout_mode = 0
-offset_left = 1057.0
-offset_top = 151.0
-offset_right = 1299.0
-offset_bottom = 200.0
-text = "
-Space while on wall - Wall jump"
+[node name="Label6" type="Label" parent="Labels"]
+offset_right = 246.0
+offset_bottom = 23.0
+scale = Vector2(0.51777, 1.33195)
+text = "Space while in air - double jump"
 
-[node name="Label" type="Label" parent="Label/Label"]
-layout_mode = 0
-offset_left = -768.0
-offset_top = -803.0
-offset_right = -471.0
-offset_bottom = -780.0
-text = "Shift - Dash (can kill enemies with this)"
-
-[node name="Label2" type="Label" parent="Label/Label/Label"]
-layout_mode = 0
-offset_left = -526.0
-offset_top = 1088.0
-offset_right = -368.0
-offset_bottom = 1137.0
-scale = Vector2(0.400471, 1.03721)
+[node name="Label5" type="Label" parent="Labels"]
+offset_left = 193.654
+offset_top = 258.695
+offset_right = 351.654
+offset_bottom = 307.695
+scale = Vector2(0.192169, 0.34865)
 text = "Winner's room!
 You're stuck here >:)"
 
-[node name="Label3" type="Label" parent="Label/Label/Label/Label2"]
-layout_mode = 0
-offset_left = -385.0
-offset_top = -794.0
-offset_right = -139.0
-offset_bottom = -771.0
-scale = Vector2(0.582042, 1.80516)
-text = "Space while in air - double jump"
-
-[node name="Label4" type="Label" parent="Label/Label/Label/Label2/Label3"]
-layout_mode = 0
-offset_left = -2130.43
-offset_top = -8.3095
-offset_right = -1911.43
-offset_bottom = 40.6905
+[node name="Label4" type="Label" parent="Labels"]
+offset_left = -574.477
+offset_top = 0.853777
+offset_right = -192.477
+offset_bottom = 49.8538
+scale = Vector2(0.853552, 0.763833)
 text = "CTRL while in air - slam
 (can be used to kill enemies)"
+
+[node name="Label2" type="Label" parent="Labels"]
+offset_left = 767.668
+offset_top = 173.602
+offset_right = 1009.67
+offset_bottom = 222.602
+scale = Vector2(0.515922, 0.592222)
+text = "
+Space while on wall - Wall jump"
+
+[node name="Label3" type="Label" parent="Labels"]
+offset_left = 436.88
+offset_top = -42.1198
+offset_right = 733.88
+offset_bottom = -19.1198
+text = "Shift - Dash (can kill enemies with this)"
 
 [node name="Pickup" parent="." instance=ExtResource("7_o06y3")]
 position = Vector2(1613, 436)
